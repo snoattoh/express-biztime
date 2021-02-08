@@ -19,7 +19,7 @@ router.get("/", async (req, res, next) => {
 });
 
 /*GET /companies/[code]
-Return obj of company: {company: {code, name, description}}
+Return obj of company: {company: {code, name, description, invoices: [id, ...]}}
 
 If the company given cannot be found, this should return a 404 status response. */
 
@@ -29,12 +29,18 @@ router.get("/:code", async (req, res, next) => {
             `SELECT * FROM companies
             WHERE code =$1`, 
             [req.params.code]);
-            
-        console.log(results.rows);
 
-        // return results.rows.length != 0  ? res.json({company: results.rows}) : res.status(404).json({error:"company not found"}); I should probably use the ExpressError class properly
         if(results.rows.length == 0) throw new ExpressError("company not found", 404);
-           
+        
+        const resultsTwo = await db.query(
+            `SELECT * FROM invoices
+            WHERE comp_code =$1`, 
+            [results.rows[0].code]);
+        
+        // return results.rows.length != 0  ? res.json({company: results.rows}) : res.status(404).json({error:"company not found"}); I should probably use the ExpressError class properly
+
+        results.rows[0].invoices = resultsTwo.rows;
+        
         return res.json({company: results.rows});
 
          }
