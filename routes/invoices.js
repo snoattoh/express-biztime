@@ -54,7 +54,6 @@ router.get("/:id", async (req, res, next) => {
             WHERE code =$1`, 
             [results.rows[0].comp_code]); 
 
-        
         if(resultsTwo.rows.length == 0) throw new ExpressError("company not found", 404);
 
         delete results.rows[0].comp_code;
@@ -79,7 +78,7 @@ router.post("/", async (req, res, next) => {
     try {
         const results = await db.query(
           `INSERT INTO invoices (comp_code, amt) 
-           VALUES ($1, $2, $3, $4, $5)
+           VALUES ($1, $2)
            RETURNING id, comp_code, amt, paid, add_date, paid_date`, 
            [req.body.comp_code, req.body.amt]);
 
@@ -95,17 +94,21 @@ Updates an invoice.
 
 If invoice cannot be found, returns a 404.
 
-Needs to be passed in a JSON body of {amt}
+Needs to be passed in a JSON body of {amt, paid}
+
+If paying unpaid invoice: sets paid_date to today
+If un-paying: sets paid_date to null
+Else: keep current paid_date
 
 Returns: {invoice: {id, comp_code, amt, paid, add_date, paid_date}} */
 
 router.put("/:id", async (req, res, next) => { 
     try {
         const results = await db.query(
-          `UPDATE invoices SET amt =$1
+          `UPDATE invoices SET amt =$1, paid=$2, paid_date=$3
            WHERE code =$2
            RETURNING code, name, description`, 
-           [req.body.amt, req.params.id]);
+           [req.body.amt, req.body.paid ? req.body.paid : null, req.body.paid ? Date.now() : null , req.params.id]);
 
            if(results.rows.length == 0) throw new ExpressError("invoice not found", 404);
            
