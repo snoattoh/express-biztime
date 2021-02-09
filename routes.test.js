@@ -141,6 +141,7 @@ describe("PUT /companies/:code", () => {
         const response = await request(app)
         .patch(`/companies/lol`);
         expect(response.statusCode).toEqual(404);
+    });
 });
 
 
@@ -162,8 +163,8 @@ describe("DELETE /companies/:code", () => {
         const response = await request(app)
         .delete(`/companies/lol`);
         expect(response.statusCode).toEqual(404);
+    });
 });
-
 
 
 /* GET /invoices
@@ -209,4 +210,4 @@ afterEach(async function() {
   afterAll(async function() {
     // close db connection
     await db.end();
-  });
+});
